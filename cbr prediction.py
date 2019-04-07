@@ -1,52 +1,64 @@
-# -*- coding: utf-8 -*-
 """
 Created on Sat Apr  6 11:36:42 2019
 
 @author: Anand
 """
 
+import pandas as pd
+import statsmodels.api as sm
+import matplotlib.pyplot as plt
+import math as m
+import numpy as np
+import pylab 
 
 from pandas import DataFrame
-import matplotlib.pyplot as plt
 from sklearn import linear_model
-import statsmodels.api as sm
-import pandas as pd
 from statsmodels.sandbox.regression.predstd import wls_prediction_std
 from sklearn.metrics import mean_squared_error
-import math as m
+
 
 # Reading data file
 df = pd.read_csv('cbr.csv')
+
 #Printing datafile as table
 print (df)
 
-# Plotting CBR against X
-plt.scatter(df['x'], df['CBR Actual'], color='red')
-plt.title('CBR Vs x', fontsize=14)
-plt.xlabel('x', fontsize=14)
-plt.ylabel('CBR ', fontsize=14)
+# Plotting CBR against Plasticity index
+plt.scatter(df['Plasticity index'], df['CBR Actual'], color='red')
+plt.title('California Bearing Ratio Vs Plasticity index', fontsize=14)
+plt.xlabel('Plasticity index (%)', fontsize=14)
+plt.ylabel('California Bearing Ratio ', fontsize=14)
 plt.grid(True)
+z = np.polyfit(df['Plasticity index'], df['CBR Actual'], 1)
+p = np.poly1d(z)
+plt.plot(df['Plasticity index'],p(df['Plasticity index']),"r--")
 plt.show()
  
-# Plotting CBR against y
-plt.scatter(df['y'], df['CBR Actual'], color='green')
-plt.title('CBR  Vs y', fontsize=14)
-plt.xlabel('y', fontsize=14)
-plt.ylabel('CBR ', fontsize=14)
+# Plotting CBR against OMC
+plt.scatter(df['OMC'], df['CBR Actual'], color='green')
+plt.title('California Bearing Ratio  Vs OMC', fontsize=14)
+plt.xlabel('OMC (%)', fontsize=14)
+plt.ylabel('California Bearing Ratio ', fontsize=14)
 plt.grid(True)
+z = np.polyfit(df['OMC'], df['CBR Actual'], 1)
+p = np.poly1d(z)
+plt.plot(df['OMC'],p(df['OMC']),"r--")
 plt.show()
 
-# Plotting CBR against z
-plt.scatter(df['z'], df['CBR Actual'], color='blue')
-plt.title('CBR Vs z', fontsize=14)
-plt.xlabel('z', fontsize=14)
-plt.ylabel('CBR ', fontsize=14)
+# Plotting CBR against MDD
+plt.scatter(df['MDD'], df['CBR Actual'], color='blue')
+plt.title('California Bearing Ratio Vs MDD', fontsize=14)
+plt.xlabel('MDD (T/m3)', fontsize=14)
+plt.ylabel('California Bearing Ratio ', fontsize=14)
 plt.grid(True)
+z = np.polyfit(df['MDD'], df['CBR Actual'], 1)
+p = np.poly1d(z)
+plt.plot(df['MDD'],p(df['MDD']),"r--")
 plt.show()
 
-# Integrating Y =(x,y,z)
-# Y = C + C1 x + C2 y + C3 z
-X = df[['x','y','z']] # here we have 3 variables for multiple regression. 
+# Regression CBR = (Plasticity index,OMC,MDD)
+# Y = C + C1 X1 + C2 X2 + C3 X3
+X = df[['Plasticity index','OMC','MDD']] # here we have 3 variables for multiple regression. 
 Y = df['CBR Actual']
  
 # With sklearn Multivariate regression
@@ -54,18 +66,9 @@ regr = linear_model.LinearRegression()
 regr.fit(X, Y)
 
 # Output
-
 print('Intercept: \n', regr.intercept_) # Value of constant C
-
 print('Coefficients: \n', regr.coef_) # Valve of coefficient C1, C2, C3
 
-# Prediction with sklearn
-# Vales to predict CBR
-New_x = 2.75 # Test value
-New_y = 5.3 # Test value
-New_z = 5.6 # Test value
-
-print ('Predicted CBR: \n', regr.predict([[New_x ,New_y ,New_z]]))
 
 
 # With statsmodels 
@@ -90,13 +93,39 @@ print('Root mean square error: ', rmse)
 
 # Plotting predicted and actual valves
 
-plt.plot(df['Slno'], df['CBR Actual'], color='blue')
-plt.plot(df['Slno'], predictions, color='red')
-plt.title('Actual CBR and Predicted CBR', fontsize=14)
-plt.xlabel('', fontsize=14)
-plt.ylabel('CBR ', fontsize=14)
+plt.plot(df['Slno'], df['CBR Actual'], color='blue', label='Lab CBR')
+plt.plot(df['Slno'], predictions, color='red', label='Predicted CBR')
+plt.title('Experimental CBR and Predicted CBR Comparison', fontsize=14)
+plt.xlabel('Sample no', fontsize=14)
+plt.ylabel('CBR(%) ', fontsize=14)
+pylab.legend(loc='upper left')
 plt.grid(True)
 plt.show()
+
+# Experimental CBR VS Predicte CBR
+
+plt.scatter(df['CBR Actual'], predictions, color='blue')
+plt.title('Experimental CBR Vs Predicred CBR', fontsize=14)
+plt.xlabel('Experimental CBR', fontsize=14)
+plt.ylabel('Predicred CBR ', fontsize=14)
+plt.grid(True)
+z = np.linspace(0, 35, 1000)
+plt.plot(z, z + 0, '-r', label='Line of equality')
+pylab.legend(loc='upper left')
+plt.show()
+
+################################ END MODEL #################################
+
+# Prediction with sklearn
+
+
+# For predicting new CBR from 
+New_PI = 16.75 # Test value
+New_OMC = 20.3 # Test value
+New_MDD = 1.6 # Test value
+
+print ('Predicted CBR: \n', regr.predict([[New_PI ,New_OMC ,New_MDD]]))
+
 
 
 
